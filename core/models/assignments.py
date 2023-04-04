@@ -75,3 +75,20 @@ class Assignment(db.Model):
     @classmethod
     def get_assignments_by_student(cls, student_id):
         return cls.filter(cls.student_id == student_id).all()
+
+    @classmethod
+    def get_assignments_to_teachers(cls, teacher_id):
+        return cls.filter(cls.teacher_id == teacher_id).all()
+        
+    @classmethod
+    def grade_assignment(cls, _id, grade, principal):
+        assignment = Assignment.get_by_id(_id)
+        assertions.assert_found(assignment, 'No assignment with this id was found')
+        assertions.assert_valid(assignment.state == AssignmentStateEnum.SUBMITTED)
+        assertions.assert_valid(assignment.teacher_id == principal.teacher_id, 'This assignment belongs comes under other teacher')
+        assertions.assert_valid(grade in [member.value for member in GradeEnum])
+
+        assignment.grade = grade
+        db.session.flush()
+
+        return assignment
